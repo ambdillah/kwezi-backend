@@ -12,17 +12,34 @@ from bson import ObjectId
 from dotenv import load_dotenv
 load_dotenv()
 
-# Import conjugation engine for sentence generation
-from conjugation_engine import create_sentence_database
+# Import conjugation engine for sentence generation (optional)
+try:
+    from conjugation_engine import create_sentence_database
+except ImportError:
+    create_sentence_database = None
+    print("⚠️ conjugation_engine not available")
 
-# Import database protection system
-from database_protection import protect_database, db_protector, check_database_integrity
-from stripe_routes import router as stripe_router
+# Import database protection system (optional)
+try:
+    from database_protection import protect_database, db_protector, check_database_integrity
+except ImportError:
+    protect_database = None
+    db_protector = None
+    check_database_integrity = None
+    print("⚠️ database_protection not available")
+
+# Import Stripe routes (optional)
+try:
+    from stripe_routes import router as stripe_router
+except ImportError:
+    stripe_router = None
+    print("⚠️ stripe_routes not available")
 
 app = FastAPI(title="Mayotte Language Learning API")
 
-# Inclure les routes Stripe
-app.include_router(stripe_router)
+# Inclure les routes Stripe (si disponible)
+if stripe_router:
+    app.include_router(stripe_router)
 
 # Add CORS middleware - CONFIGURATION PRODUCTION SÉCURISÉE
 # Accepter les requêtes depuis le frontend (APK Android, Preview, et domaine production)
@@ -1440,10 +1457,20 @@ async def get_audio_file(word_id: str, lang: str):
 # SYSTÈME PREMIUM - Endpoints Utilisateurs
 # ============================================
 
-from premium_system import (
-    create_user, get_user, upgrade_to_premium,
-    get_words_for_user, update_user_activity, get_user_stats
-)
+# Import premium system (optional)
+try:
+    from premium_system import (
+        create_user, get_user, upgrade_to_premium,
+        get_words_for_user, update_user_activity, get_user_stats
+    )
+except ImportError:
+    print("⚠️ premium_system not available - using fallback functions")
+    def create_user(*args, **kwargs): raise HTTPException(503, "Premium system not available")
+    def get_user(*args, **kwargs): raise HTTPException(503, "Premium system not available")
+    def upgrade_to_premium(*args, **kwargs): raise HTTPException(503, "Premium system not available")
+    def get_words_for_user(*args, **kwargs): raise HTTPException(503, "Premium system not available")
+    def update_user_activity(*args, **kwargs): raise HTTPException(503, "Premium system not available")
+    def get_user_stats(*args, **kwargs): raise HTTPException(503, "Premium system not available")
 
 @app.post("/api/users/register")
 async def register_user(user_data: UserCreate):
