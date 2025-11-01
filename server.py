@@ -398,7 +398,7 @@ async def create_word(word: WordCreate):
     word_dict = word.dict()
     word_dict["created_at"] = datetime.utcnow()
     result = words_collection.insert_one(word_dict)
-   word_dict["id"] = str(result.inserted_id)
+    word_dict["id"] = str(result.inserted_id)
     return word_dict
 @app.put("/api/words/{word_id}")
 async def update_word(word_id: str, word: WordCreate):
